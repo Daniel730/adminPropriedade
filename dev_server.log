@@ -1,0 +1,17 @@
+
+> admin-propriedade@0.1.0 dev /mnt/c/Users/Danie/Desktop/faculdade/adminPropriedade
+> next dev --turbopack --port 3007
+
+   ▲ Next.js 15.5.14 (Turbopack)
+   - Local:        http://localhost:3007
+   - Network:      http://10.255.255.254:3007
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 944ms
+ ✓ Ready in 13.6s
+ ○ Compiling / ...
+ ✓ Compiled / in 6.5s
+ HEAD / 200 in 7854ms
+ ELIFECYCLE  Command failed.

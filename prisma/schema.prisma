@@ -1,0 +1,105 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String               @id @default(uuid())
+  email             String               @unique
+  passwordHash      String
+  name              String
+  role              String
+  vendorManagerId   String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  assignedRequests  MaintenanceRequest[] @relation("VendorRequests")
+  submittedRequests MaintenanceRequest[] @relation("TenantRequests")
+  notifications     Notification[]
+  properties        Property[]
+  subscription      Subscription?
+  occupiedUnit      Unit?
+}
+
+model Property {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  managerId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  manager   User     @relation(fields: [managerId], references: [id])
+  units     Unit[]
+}
+
+model Unit {
+  id         String               @id @default(uuid())
+  propertyId String
+  unitNumber String
+  tenantId   String?              @unique
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+  requests   MaintenanceRequest[]
+  tenant     User?                @relation(fields: [tenantId], references: [id])
+  property   Property             @relation(fields: [propertyId], references: [id])
+
+  @@unique([propertyId, unitNumber])
+}
+
+model MaintenanceRequest {
+  id            String         @id @default(uuid())
+  title         String
+  description   String
+  status        String         @default("OPEN")
+  unitId        String
+  tenantId      String
+  vendorId      String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  vendor        User?          @relation("VendorRequests", fields: [vendorId], references: [id])
+  tenant        User           @relation("TenantRequests", fields: [tenantId], references: [id])
+  unit          Unit           @relation(fields: [unitId], references: [id])
+  notifications Notification[]
+}
+
+model Notification {
+  id        String              @id @default(uuid())
+  userId    String
+  requestId String?
+  type      String
+  message   String
+  read      Boolean             @default(false)
+  createdAt DateTime            @default(now())
+  request   MaintenanceRequest? @relation(fields: [requestId], references: [id])
+  user      User                @relation(fields: [userId], references: [id])
+}
+
+model SubscriptionPlan {
+  id               String         @id @default(uuid())
+  name             String         @unique
+  unitLimit        Int
+  priceMonthyCents Int
+  stripePriceId    String?        @unique
+  adsEnabled       Boolean        @default(false)
+  subscriptions    Subscription[]
+}
+
+model Subscription {
+  id                   String           @id @default(uuid())
+  managerId            String           @unique
+  planId               String
+  unitLimit            Int
+  stripeCustomerId     String           @unique
+  stripeSubscriptionId String           @unique
+  status               String           @default("ACTIVE")
+  currentPeriodEnd     DateTime
+  gracePeriodEnd       DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  plan                 SubscriptionPlan @relation(fields: [planId], references: [id])
+  manager              User             @relation(fields: [managerId], references: [id])
+}

@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.specify/scripts/bash/create-new-feature.sh:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(.specify/scripts/bash/setup-plan.sh:*)",
+      "Bash(.specify/scripts/bash/update-agent-context.sh claude:*)",
+      "Bash(pnpm --version)",
+      "Bash(npm --version)",
+      "Bash(pnpm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm root:*)",
+      "Bash(export PATH=\"$PATH:$\\(npm root -g\\)/.bin\")",
+      "Bash(cp:*)",
+      "Bash(wait)",
+      "Bash(shopt -s dotglob)",
+      "Bash(mv admin-propriedade/* .)",
+      "Bash(mv admin-propriedade/.* .)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm approve-builds:*)",
+      "Bash(pnpm rebuild:*)",
+      "Bash(pnpm install:*)"
+    ]
+  }
+}

@@ -2,9 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { GlassCard } from "@/components/ui/GlassCard"
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle2, AlertTriangle, ArrowRight, Loader2 } from "lucide-react"
+import { Check, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface Plan {
@@ -53,109 +51,95 @@ export function BillingPlans({ plans, currentPlanId, hasSubscription }: BillingP
     }
   }
 
+  // Find the most popular/recommended plan (Growth tier)
+  const popularPlanIndex = plans.findIndex(p => p.name === "Growth")
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {error && (
-        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium text-center">
+        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium">
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {plans.map((plan) => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {plans.map((plan, index) => {
           const isCurrent = currentPlanId === plan.id
-          const isGrowth = plan.name === "Growth"
+          const isPopular = index === popularPlanIndex
           const isLoading = loadingPlanId === plan.id
           
           return (
-            <GlassCard 
+            <div 
               key={plan.id} 
               className={cn(
-                "flex flex-col relative p-0 overflow-hidden border-none transition-all duration-500",
-                isCurrent ? "ring-2 ring-primary shadow-2xl shadow-primary/20 scale-[1.02] z-10" : "opacity-90 hover:opacity-100 shadow-xl"
+                "relative bg-card border rounded-xl p-5 flex flex-col",
+                isCurrent && "border-primary ring-1 ring-primary",
+                isPopular && !isCurrent && "border-primary/50"
               )}
-              hoverable={!isCurrent}
             >
-              {isCurrent && (
-                <div className="absolute top-4 right-4">
-                  <Badge variant="brand" className="shadow-lg py-1 px-3">ACTIVE</Badge>
+              {isPopular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
+                  Popular
                 </div>
               )}
               
-              <div className={cn(
-                "p-8 pb-0",
-                isGrowth && "bg-primary/5"
-              )}>
-                <p className={cn(
-                  "text-xs font-black uppercase tracking-widest mb-2",
-                  isGrowth ? "text-primary" : "text-muted-foreground"
-                )}>{plan.name}</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-black tracking-tighter">${plan.priceMonthyCents / 100}</span>
-                  <span className="text-muted-foreground font-bold">/mo</span>
+              {isCurrent && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
+                  Current
+                </div>
+              )}
+              
+              <div className="mb-4">
+                <h3 className="font-semibold">{plan.name}</h3>
+                <div className="mt-2 flex items-baseline">
+                  <span className="text-3xl font-semibold">${plan.priceMonthyCents / 100}</span>
+                  <span className="text-muted-foreground ml-1">/month</span>
                 </div>
               </div>
 
-              <div className="p-8 flex-1 flex flex-col justify-between gap-8">
-                <ul className="space-y-4">
-                  <li className="flex items-center gap-3">
-                    <div className="h-5 w-5 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" strokeWidth={3} />
-                    </div>
-                    <span className="text-sm font-bold">Up to {plan.unitLimit} Units</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className="h-5 w-5 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" strokeWidth={3} />
-                    </div>
-                    <span className="text-sm font-bold">Unlimited Requests</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <div className={cn(
-                      "h-5 w-5 rounded-full flex items-center justify-center shrink-0",
-                      plan.adsEnabled ? "bg-amber-500/20" : "bg-emerald-500/20"
-                    )}>
-                      {plan.adsEnabled ? (
-                        <AlertTriangle className="h-3.5 w-3.5 text-amber-600" strokeWidth={3} />
-                      ) : (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" strokeWidth={3} />
-                      )}
-                    </div>
-                    <span className={cn(
-                      "text-sm font-bold",
-                      plan.adsEnabled ? "text-amber-700/80" : "text-foreground"
-                    )}>{plan.adsEnabled ? "Standard Ads" : "No Advertisements"}</span>
-                  </li>
-                </ul>
-                
-                {isCurrent ? (
-                  <Button className="w-full rounded-2xl h-12 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed" disabled>
-                    Active Plan
-                  </Button>
-                ) : plan.priceMonthyCents === 0 ? (
-                  <Button className="w-full rounded-2xl h-12 border-2 border-dashed border-muted text-muted-foreground hover:bg-muted/10" variant="outline" disabled>
-                    Included Tier
-                  </Button>
-                ) : (
-                  <Button 
-                    className="w-full rounded-2xl h-12 shadow-lg group transition-all duration-300" 
-                    type="button" 
-                    variant={isGrowth ? "brand" : "default"}
-                    disabled={!!loadingPlanId}
-                    onClick={() => handleCheckout(plan.id)}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <>
-                        {hasSubscription ? "Switch Plan" : "Get Started"}
-                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-            </GlassCard>
+              <ul className="space-y-3 flex-1 mb-6">
+                <li className="flex items-center gap-2 text-sm">
+                  <Check className="h-4 w-4 text-primary shrink-0" />
+                  Up to {plan.unitLimit} units
+                </li>
+                <li className="flex items-center gap-2 text-sm">
+                  <Check className="h-4 w-4 text-primary shrink-0" />
+                  Unlimited requests
+                </li>
+                <li className="flex items-center gap-2 text-sm">
+                  <Check className={cn(
+                    "h-4 w-4 shrink-0",
+                    plan.adsEnabled ? "text-muted-foreground" : "text-primary"
+                  )} />
+                  <span className={plan.adsEnabled ? "text-muted-foreground" : ""}>
+                    {plan.adsEnabled ? "With ads" : "Ad-free experience"}
+                  </span>
+                </li>
+              </ul>
+              
+              {isCurrent ? (
+                <Button variant="outline" className="w-full" disabled>
+                  Current Plan
+                </Button>
+              ) : plan.priceMonthyCents === 0 ? (
+                <Button variant="outline" className="w-full" disabled>
+                  Free Tier
+                </Button>
+              ) : (
+                <Button 
+                  variant={isPopular ? "default" : "outline"}
+                  className="w-full"
+                  disabled={!!loadingPlanId}
+                  onClick={() => handleCheckout(plan.id)}
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    hasSubscription ? "Switch Plan" : "Get Started"
+                  )}
+                </Button>
+              )}
+            </div>
           )
         })}
       </div>

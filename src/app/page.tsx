@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import LandingPage from "./(marketing)/page";
 
 const ROLE_HOME: Record<string, string> = {
   TENANT: "/requests",
@@ -15,5 +16,6 @@ export default async function Home() {
     redirect(home);
   }
   
-  redirect("/login");
+  // Show landing page for unauthenticated users
+  return <LandingPage />;
 }

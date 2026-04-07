@@ -4,11 +4,8 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge"
 import { RequestStatus } from "@/lib/types"
-import { GlassCard } from "@/components/ui/GlassCard"
 import { Button } from "@/components/ui/button"
-import { Plus, Calendar, Building2, ChevronRight, Inbox } from "lucide-react"
-
-import { cn } from "@/lib/utils"
+import { Plus, Building2, ArrowRight, Wrench } from "lucide-react"
 
 export default async function TenantRequestsPage() {
   const session = await auth()
@@ -20,88 +17,96 @@ export default async function TenantRequestsPage() {
     orderBy: { createdAt: "desc" },
   })
 
+  const openCount = requests.filter(r => r.status !== RequestStatus.RESOLVED).length
+
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            My Requests
-          </h2>
-          <p className="text-muted-foreground mt-1 text-lg">
-            Track and manage your maintenance tickets.
+          <h1 className="text-2xl font-semibold tracking-tight">My Requests</h1>
+          <p className="text-muted-foreground mt-1">
+            Track your maintenance tickets
           </p>
         </div>
-        <Button asChild variant="brand" size="lg" className="shadow-primary/20">
+        <Button asChild>
           <Link href="/requests/new">
-            <Plus className="mr-2 h-5 w-5" /> New Request
+            <Plus className="h-4 w-4 mr-2" />
+            New Request
           </Link>
         </Button>
       </div>
 
-      <div className="grid gap-4">
-        {requests.length === 0 ? (
-          <GlassCard className="py-20 text-center" hoverable={false}>
-            <div className="flex flex-col items-center gap-4">
-              <div className="p-4 rounded-full bg-muted">
-                <Inbox className="h-12 w-12 text-muted-foreground" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xl font-bold tracking-tight">No requests yet</p>
-                <p className="text-muted-foreground text-sm">Everything looks good! Need something fixed?</p>
-              </div>
-              <Button asChild variant="outline" className="mt-4">
-                <Link href="/requests/new">Submit a Request</Link>
-              </Button>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-card border rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Wrench className="h-4 w-4 text-primary" />
             </div>
-          </GlassCard>
-        ) : (
-          requests.map((req) => (
-            <Link key={req.id} href={`/requests/${req.id}`} className="block group">
-              <GlassCard className="p-0 overflow-hidden border-none shadow-md group-hover:shadow-xl group-hover:shadow-primary/5 transition-all duration-300">
-                <div className="flex flex-col sm:flex-row">
-                  <div className={cn(
-                    "w-2 sm:w-3 shrink-0",
-                    req.status === RequestStatus.OPEN && "bg-amber-500",
-                    req.status === RequestStatus.IN_PROGRESS && "bg-primary",
-                    req.status === RequestStatus.RESOLVED && "bg-emerald-500",
-                  )} />
-                  
-                  <div className="flex-1 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="space-y-1.5 flex-1">
-                      <div className="flex items-center gap-3">
-                        <h4 className="font-bold text-lg group-hover:text-primary transition-colors line-clamp-1">
-                          {req.title}
-                        </h4>
-                        <RequestStatusBadge status={req.status as RequestStatus} className="hidden sm:flex" />
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Building2 className="h-3.5 w-3.5 text-primary/60" />
-                          <span>{req.unit.property.name} • {req.unit.unitNumber}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5 text-primary/60" />
-                          <span>{new Date(req.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-                        </div>
-                      </div>
-                      <RequestStatusBadge status={req.status as RequestStatus} className="sm:hidden w-fit mt-2" />
-                    </div>
+            <div>
+              <p className="text-2xl font-semibold">{requests.length}</p>
+              <p className="text-xs text-muted-foreground">Total Requests</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-card border rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${openCount > 0 ? 'bg-warning/10' : 'bg-success/10'}`}>
+              <Wrench className={`h-4 w-4 ${openCount > 0 ? 'text-warning' : 'text-success'}`} />
+            </div>
+            <div>
+              <p className="text-2xl font-semibold">{openCount}</p>
+              <p className="text-xs text-muted-foreground">Open</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-none pt-4 sm:pt-0">
-                      <div className="sm:hidden text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                        Details
-                      </div>
-                      <div className="h-10 w-10 rounded-full bg-primary/5 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                        <ChevronRight className="h-5 w-5 group-hover:translate-x-0.5 transition-transform" />
-                      </div>
+      {/* Requests List */}
+      {requests.length === 0 ? (
+        <div className="bg-card border rounded-xl p-12 text-center">
+          <div className="mx-auto w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
+            <Wrench className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <h3 className="font-semibold mb-1">No requests yet</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Everything looks good! Need something fixed?
+          </p>
+          <Button asChild>
+            <Link href="/requests/new">Submit a Request</Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {requests.map((req) => (
+            <Link 
+              key={req.id} 
+              href={`/requests/${req.id}`}
+              className="block bg-card border rounded-xl p-4 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200 group"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-medium truncate group-hover:text-primary transition-colors">
+                      {req.title}
+                    </h3>
+                    <RequestStatusBadge status={req.status as RequestStatus} />
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Building2 className="h-3.5 w-3.5" />
+                      <span>{req.unit.property.name} - Unit {req.unit.unitNumber}</span>
                     </div>
+                    <span>{new Date(req.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                   </div>
                 </div>
-              </GlassCard>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+              </div>
             </Link>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -6,9 +6,5 @@ export default async function NewPropertyPage() {
   const session = await auth()
   if (!session || session.user.role !== "MANAGER") redirect("/login")
 
-  return (
-    <div className="py-10">
-      <CreatePropertyForm />
-    </div>
-  )
+  return <CreatePropertyForm />
 }

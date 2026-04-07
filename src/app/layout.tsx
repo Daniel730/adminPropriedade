@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
+const inter = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
@@ -15,22 +15,23 @@ const geistMono = Geist_Mono({
 import type { Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#3b82f6",
+  themeColor: "#8b5cf6",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export const metadata: Metadata = {
-  title: "AdminPropriedade | Property Management",
-  description: "Modern property management automation platform",
+  title: "PropFlow | Modern Property Management",
+  description: "The complete platform for property managers. Streamline maintenance, billing, and tenant communication in one powerful dashboard.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "AdminProp",
+    title: "PropFlow",
   },
+  keywords: ["property management", "maintenance requests", "tenant portal", "landlord software", "property automation"],
 };
 
 export default function RootLayout({
@@ -39,9 +40,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${geistMono.variable} font-sans antialiased`}
       >
         {children}
       </body>

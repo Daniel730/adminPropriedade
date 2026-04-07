@@ -5,13 +5,22 @@ interface GlassCardProps {
   children: React.ReactNode;
   className?: string;
   hoverable?: boolean;
+  variant?: "default" | "bordered" | "elevated";
 }
 
-export function GlassCard({ children, className, hoverable = true }: GlassCardProps) {
+export function GlassCard({ 
+  children, 
+  className, 
+  hoverable = true,
+  variant = "default"
+}: GlassCardProps) {
   return (
     <div className={cn(
-      "bg-card/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-2xl p-6 transition-all duration-300",
-      hoverable && "hover:bg-card/60 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1",
+      "rounded-xl p-6 transition-all duration-200",
+      variant === "default" && "bg-card border border-border",
+      variant === "bordered" && "bg-card border-2 border-border",
+      variant === "elevated" && "bg-card border border-border shadow-lg shadow-foreground/5",
+      hoverable && "hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5",
       className
     )}>
       {children}

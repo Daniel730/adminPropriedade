@@ -11,7 +11,9 @@ import {
   Menu,
   X,
   CreditCard,
-  Bell
+  Bell,
+  Search,
+  ChevronRight
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -48,113 +50,142 @@ const NAV_ITEMS: Record<string, NavItem[]> = {
   ],
 };
 
+const ROLE_LABELS: Record<string, string> = {
+  MANAGER: "Property Manager",
+  TENANT: "Tenant",
+  VENDOR: "Vendor",
+};
+
 export function ModernLayout({ children, role }: ModernLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
   const navItems = NAV_ITEMS[role] || [];
 
+  const getPageTitle = () => {
+    const segment = pathname.split("/").filter(Boolean).pop() || "dashboard";
+    return segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
+  };
+
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-screen bg-background flex">
       {/* Mobile Header */}
-      <header className="md:hidden flex items-center justify-between p-4 border-b bg-background/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="md:hidden fixed top-0 left-0 right-0 flex items-center justify-between px-4 h-16 border-b bg-background/95 backdrop-blur-sm z-50">
         <BrandLogo size="sm" />
-        <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
-          <Menu className="h-6 w-6" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="rounded-lg">
+            <Bell className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="rounded-lg" onClick={() => setIsSidebarOpen(true)}>
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
       </header>
 
       {/* Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-background/60 backdrop-blur-sm z-[60] md:hidden"
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] md:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed md:static inset-y-0 left-0 w-72 bg-card/40 backdrop-blur-xl border-r z-[70] transition-transform duration-300 ease-in-out md:translate-x-0",
+        "fixed md:sticky top-0 left-0 w-64 h-screen bg-card border-r z-[70] transition-transform duration-300 ease-out md:translate-x-0 flex flex-col",
         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="flex flex-col h-full p-6">
-          <div className="flex items-center justify-between mb-10">
-            <BrandLogo />
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsSidebarOpen(false)}>
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between px-4 h-16 border-b">
+          <BrandLogo size="sm" />
+          <Button variant="ghost" size="icon" className="md:hidden rounded-lg" onClick={() => setIsSidebarOpen(false)}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
 
-          <nav className="flex-1 space-y-1">
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto p-3">
+          <div className="space-y-1">
             {navItems.map((item) => {
-              const isActive = pathname.startsWith(item.href);
+              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                     isActive 
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
-                      : "hover:bg-primary/10 text-muted-foreground hover:text-primary"
+                      ? "bg-primary text-primary-foreground" 
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
                   )}
                   onClick={() => setIsSidebarOpen(false)}
                 >
-                  <item.icon className={cn(
-                    "h-5 w-5 transition-colors",
-                    isActive ? "text-primary-foreground" : "group-hover:text-primary"
-                  )} />
-                  <span className="font-medium">{item.label}</span>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  {item.label}
                 </Link>
               );
             })}
-          </nav>
+          </div>
+        </nav>
 
-          <div className="mt-auto pt-6 border-t space-y-1">
-            <Link
-              href="/settings"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200 group"
-            >
-              <Settings className="h-5 w-5 group-hover:text-primary" />
-              <span className="font-medium">Settings</span>
-            </Link>
-            <div className="flex items-center justify-between px-4 py-3">
-              <ThemeToggle />
-              <form action={logoutAction}>
-                <Button 
-                  type="submit"
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </form>
-            </div>
+        {/* Sidebar Footer */}
+        <div className="p-3 border-t space-y-1">
+          <Link
+            href="/settings"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </Link>
+          <div className="flex items-center justify-between px-3 py-2">
+            <ThemeToggle />
+            <form action={logoutAction}>
+              <Button 
+                type="submit"
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </form>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Desktop Header */}
-        <header className="hidden md:flex items-center justify-between px-8 py-4 bg-background/40 backdrop-blur-md border-b">
-          <h1 className="text-xl font-semibold capitalize tracking-tight">
-            {pathname.split("/").pop()?.replace(/-/g, " ") || "Dashboard"}
-          </h1>
+      <main className="flex-1 flex flex-col min-h-screen md:min-h-0">
+        {/* Top Bar */}
+        <header className="hidden md:flex items-center justify-between px-6 h-16 border-b bg-background sticky top-0 z-40">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="rounded-full relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-2 right-2 h-2 w-2 bg-secondary rounded-full border-2 border-background" />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>{ROLE_LABELS[role]}</span>
+              <ChevronRight className="h-4 w-4" />
+              <span className="text-foreground font-medium">{getPageTitle()}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" className="gap-2 text-muted-foreground">
+              <Search className="h-4 w-4" />
+              <span className="hidden lg:inline">Search...</span>
+              <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
+                <span className="text-xs">&#8984;</span>K
+              </kbd>
             </Button>
-            <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary/20">
-              <Users className="h-4 w-4 text-primary" />
+            <Button variant="ghost" size="icon" className="relative rounded-lg">
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full" />
+            </Button>
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+              <span className="text-xs font-medium text-primary">
+                {role.charAt(0)}
+              </span>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-zinc-50/50 dark:bg-zinc-950/50">
-          <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 md:p-6 lg:p-8 pt-20 md:pt-6 max-w-7xl mx-auto w-full">
             {children}
           </div>
         </div>

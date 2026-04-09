@@ -10,7 +10,7 @@ import {
 import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge"
 import { RequestStatus } from "@/lib/types"
 import { Button } from "@/components/ui/button"
-import { Building2, User, ChevronRight } from "lucide-react"
+import { Building2, User, ChevronRight, AlertOctagon } from "lucide-react"
 
 interface Request {
   id: string
@@ -25,7 +25,7 @@ interface Request {
   }
   tenant: {
     name: string
-  }
+  } | null
   vendor: {
     name: string
   } | null
@@ -53,7 +53,12 @@ export function DashboardTable({ requests }: DashboardTableProps) {
             <div className="p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium truncate">{req.title}</h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium truncate">{req.title}</h4>
+                    {req.status !== RequestStatus.RESOLVED && (new Date().getTime() - new Date(req.createdAt).getTime() > 48 * 60 * 60 * 1000) && (
+                      <AlertOctagon className="h-4 w-4 text-destructive" title="SLA Breached (>48h)" />
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-0.5">
                     {req.unit.property.name} - Unit {req.unit.unitNumber}
                   </p>
@@ -61,7 +66,7 @@ export function DashboardTable({ requests }: DashboardTableProps) {
                 <RequestStatusBadge status={req.status as RequestStatus} />
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{req.tenant.name}</span>
+                <span className="text-muted-foreground">{req.tenant?.name || 'Unassigned'}</span>
                 <div className="flex items-center gap-1 text-primary text-xs font-medium">
                   View
                   <ChevronRight className="h-3 w-3" />
@@ -102,14 +107,19 @@ export function DashboardTable({ requests }: DashboardTableProps) {
                   </span>
                 </TableCell>
                 <TableCell className="max-w-[200px]">
-                  <span className="truncate block" title={req.title}>
-                    {req.title}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="truncate block" title={req.title}>
+                      {req.title}
+                    </span>
+                    {req.status !== RequestStatus.RESOLVED && (new Date().getTime() - new Date(req.createdAt).getTime() > 48 * 60 * 60 * 1000) && (
+                      <AlertOctagon className="h-4 w-4 text-destructive shrink-0" title="SLA Breached (>48h)" />
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2 text-sm">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    {req.tenant.name}
+                    {req.tenant?.name || 'Unassigned'}
                   </div>
                 </TableCell>
                 <TableCell>

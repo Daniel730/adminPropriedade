@@ -2,6 +2,8 @@ import NextAuth from "next-auth"
 import { authConfig } from "@/lib/auth.config"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { ROLE_HOME } from "@/lib/constants"
+import { Role } from "@/lib/types"
 
 const { auth } = NextAuth(authConfig)
 
@@ -30,22 +32,19 @@ const PROTECTED_PREFIXES = [
   "/api/requests",
   "/api/notifications",
   "/api/billing",
+  "/settings",
+  "/api/user",
 ]
 
 function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 }
 
-// Role home routes
-const ROLE_HOME: Record<string, string> = {
-  TENANT: "/requests",
-  MANAGER: "/dashboard",
-  VENDOR: "/vendor/requests",
-}
+// Role home routes moved to lib/constants.ts
 
 // Allowed path prefixes per role
 const ROLE_ALLOWED_PREFIXES: Record<string, string[]> = {
-  TENANT: ["/requests", "/api/requests", "/api/notifications"],
+  TENANT: ["/requests", "/api/requests", "/api/notifications", "/settings", "/api/user"],
   MANAGER: [
     "/dashboard",
     "/properties",
@@ -57,8 +56,10 @@ const ROLE_ALLOWED_PREFIXES: Record<string, string[]> = {
     "/api/requests",
     "/api/notifications",
     "/api/billing",
+    "/settings",
+    "/api/user",
   ],
-  VENDOR: ["/vendor/requests", "/api/requests", "/api/notifications"],
+  VENDOR: ["/vendor/requests", "/api/requests", "/api/notifications", "/settings", "/api/user"],
 }
 
 function isAllowedForRole(pathname: string, role: string): boolean {
@@ -74,7 +75,7 @@ export default auth(function middleware(req: NextRequest & { auth: { user?: { ro
   if (pathname === "/login") {
     const session = req.auth
     if (session?.user?.role) {
-      const home = ROLE_HOME[session.user.role] ?? "/dashboard"
+      const home = ROLE_HOME[session.user.role as Role] ?? "/dashboard"
       return NextResponse.redirect(new URL(home, req.url))
     }
     return NextResponse.next()
@@ -98,7 +99,7 @@ export default auth(function middleware(req: NextRequest & { auth: { user?: { ro
     const role = session.user.role
 
     if (role && !isAllowedForRole(pathname, role)) {
-      const home = ROLE_HOME[role] ?? "/login"
+      const home = ROLE_HOME[role as Role] ?? "/login"
       return NextResponse.redirect(new URL(home, req.url))
     }
   }

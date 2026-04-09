@@ -3,11 +3,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { auth, signIn } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { ROLE_HOME } from "@/lib/constants";
+import { Role } from "@/lib/types";
+import Link from "next/link";
 
 export default async function LoginPage() {
   const session = await auth();
   if (session) {
-    redirect("/dashboard");
+    const home = ROLE_HOME[session.user.role as Role] || "/dashboard"
+    redirect(home);
   }
 
   return (
@@ -24,7 +28,7 @@ export default async function LoginPage() {
           "use server";
           await signIn("credentials", {
             ...Object.fromEntries(formData),
-            redirectTo: "/dashboard",
+            redirectTo: "/", // Redirect to home which handles role-based routing
           });
         }}
         className="space-y-4"
@@ -43,9 +47,9 @@ export default async function LoginPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <a href="#" className="text-sm text-primary hover:underline">
+            <Link href="/forgot-password" title="Reset your password" className="text-sm text-primary hover:underline">
               Forgot password?
-            </a>
+            </Link>
           </div>
           <Input 
             id="password" 

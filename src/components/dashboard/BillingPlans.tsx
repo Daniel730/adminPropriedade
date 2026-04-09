@@ -121,7 +121,7 @@ export function BillingPlans({ plans, currentPlanId, hasSubscription }: BillingP
                 <Button variant="outline" className="w-full" disabled>
                   Current Plan
                 </Button>
-              ) : plan.priceMonthyCents === 0 ? (
+              ) : plan.unitLimit <= 2 && plan.adsEnabled ? (
                 <Button variant="outline" className="w-full" disabled>
                   Free Tier
                 </Button>

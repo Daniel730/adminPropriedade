@@ -5,7 +5,7 @@ import Link from "next/link"
 import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge"
 import { RequestStatus } from "@/lib/types"
 import { GlassCard } from "@/components/ui/GlassCard"
-import { Wrench, Calendar, Building2, ChevronRight, Inbox } from "lucide-react"
+import { Wrench, Calendar, Building2, ChevronRight, Inbox, CheckCircle2, Star, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default async function VendorRequestsPage() {
@@ -20,6 +20,20 @@ export default async function VendorRequestsPage() {
     orderBy: { createdAt: "desc" },
   })
 
+  // Calculate Vendor Metrics
+  const totalTasks = requests.length
+  const completedTasks = requests.filter(r => r.status === RequestStatus.RESOLVED).length
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+  
+  const ratedRequests = requests.filter(r => r.vendorRating !== null)
+  const rating = ratedRequests.length > 0 
+    ? ratedRequests.reduce((sum, r) => sum + (r.vendorRating || 0), 0) / ratedRequests.length 
+    : 0
+
+  // Financial metrics
+  const totalEarnedCents = requests.reduce((sum, r) => sum + (r.finalCostCents || 0), 0)
+  const avgJobValue = completedTasks > 0 ? (totalEarnedCents / 100 / completedTasks).toFixed(2) : "0.00"
+
   return (
     <div className="space-y-8 animate-page-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -31,12 +45,72 @@ export default async function VendorRequestsPage() {
             Manage your assigned maintenance tasks and updates.
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-secondary/10 border border-secondary/20">
-          <Wrench className="h-4 w-4 text-secondary" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-secondary/80">
-            Vendor Portal
-          </span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 group cursor-pointer hover:bg-emerald-500/20 transition-all">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">
+              Set Available
+            </span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-secondary/10 border border-secondary/20">
+            <Wrench className="h-4 w-4 text-secondary" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-secondary/80">
+              Vendor Portal
+            </span>
+          </div>
         </div>
+      </div>
+
+      {/* Financial Summary */}
+      <GlassCard className="p-6 border-none shadow-xl shadow-primary/5 bg-gradient-to-r from-primary/5 via-transparent to-transparent flex items-center justify-between" hoverable={false}>
+        <div className="flex items-center gap-6">
+          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+            <TrendingUp className="h-7 w-7" />
+          </div>
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-60">Lifetime Earnings</p>
+            <h3 className="text-3xl font-bold tracking-tight">${(totalEarnedCents / 100).toLocaleString()}</h3>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-60">Avg. Per Job</p>
+          <p className="text-xl font-bold text-primary font-mono">${avgJobValue}</p>
+        </div>
+      </GlassCard>
+
+      {/* Performance Dashboard */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <GlassCard className="p-5 border-none shadow-xl shadow-primary/5">
+          <div className="flex items-center gap-3 text-muted-foreground mb-2">
+            <Wrench className="h-4 w-4 text-primary" />
+            <h3 className="text-xs font-black uppercase tracking-widest">Total Assigned</h3>
+          </div>
+          <p className="text-3xl font-bold">{totalTasks}</p>
+        </GlassCard>
+        
+        <GlassCard className="p-5 border-none shadow-xl shadow-primary/5">
+          <div className="flex items-center gap-3 text-muted-foreground mb-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            <h3 className="text-xs font-black uppercase tracking-widest">Completed</h3>
+          </div>
+          <p className="text-3xl font-bold">{completedTasks}</p>
+        </GlassCard>
+
+        <GlassCard className="p-5 border-none shadow-xl shadow-primary/5">
+          <div className="flex items-center gap-3 text-muted-foreground mb-2">
+            <TrendingUp className="h-4 w-4 text-blue-500" />
+            <h3 className="text-xs font-black uppercase tracking-widest">Completion Rate</h3>
+          </div>
+          <p className="text-3xl font-bold">{completionRate}%</p>
+        </GlassCard>
+
+        <GlassCard className="p-5 border-none shadow-xl shadow-primary/5">
+          <div className="flex items-center gap-3 text-muted-foreground mb-2">
+            <Star className="h-4 w-4 text-amber-500" />
+            <h3 className="text-xs font-black uppercase tracking-widest">Vendor Rating</h3>
+          </div>
+          <p className="text-3xl font-bold">{rating > 0 ? rating.toFixed(1) : "N/A"}</p>
+        </GlassCard>
       </div>
 
       <div className="grid gap-4">

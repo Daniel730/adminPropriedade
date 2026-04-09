@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { RequestStatus } from "@/lib/types"
 import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge"
+import { RequestComments } from "@/components/requests/RequestComments"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, User, Wrench, Calendar, Info, MapPin, CheckCircle2 } from "lucide-react"
@@ -130,6 +131,10 @@ export default async function TenantRequestDetailPage({
             </div>
           </GlassCard>
         </div>
+      </div>
+
+      <div className="mt-8">
+        <RequestComments requestId={request.id} currentUserId={session.user.id} />
       </div>
     </div>
   )

@@ -23,6 +23,8 @@ model User {
   properties        Property[]
   subscription      Subscription?
   occupiedUnit      Unit?
+  comments          RequestComment[]
+  announcements     Announcement[]
 }
 
 model Property {
@@ -30,22 +32,24 @@ model Property {
   name      String
   address   String
   managerId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  manager   User     @relation(fields: [managerId], references: [id])
-  units     Unit[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  manager       User           @relation(fields: [managerId], references: [id])
+  units         Unit[]
+  announcements Announcement[]
 }
 
 model Unit {
   id         String               @id @default(uuid())
   propertyId String
   unitNumber String
-  tenantId   String?              @unique
-  createdAt  DateTime             @default(now())
-  updatedAt  DateTime             @updatedAt
-  requests   MaintenanceRequest[]
-  tenant     User?                @relation(fields: [tenantId], references: [id])
-  property   Property             @relation(fields: [propertyId], references: [id])
+  tenantId         String?              @unique
+  monthlyRentCents Int                  @default(0)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  requests         MaintenanceRequest[]
+  tenant           User?                @relation(fields: [tenantId], references: [id])
+  property         Property             @relation(fields: [propertyId], references: [id])
 
   @@unique([propertyId, unitNumber])
 }
@@ -55,15 +59,19 @@ model MaintenanceRequest {
   title         String
   description   String
   status        String         @default("OPEN")
-  unitId        String
-  tenantId      String
-  vendorId      String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  vendor        User?          @relation("VendorRequests", fields: [vendorId], references: [id])
-  tenant        User           @relation("TenantRequests", fields: [tenantId], references: [id])
-  unit          Unit           @relation(fields: [unitId], references: [id])
-  notifications Notification[]
+  unitId         String
+  tenantId       String
+  vendorId       String?
+  imageUrl       String?
+  finalCostCents Int?
+  vendorRating   Int?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  vendor         User?            @relation("VendorRequests", fields: [vendorId], references: [id])
+  tenant         User             @relation("TenantRequests", fields: [tenantId], references: [id])
+  unit           Unit             @relation(fields: [unitId], references: [id])
+  notifications  Notification[]
+  comments       RequestComment[]
 }
 
 model Notification {
@@ -102,4 +110,25 @@ model Subscription {
   updatedAt            DateTime         @updatedAt
   plan                 SubscriptionPlan @relation(fields: [planId], references: [id])
   manager              User             @relation(fields: [managerId], references: [id])
+}
+
+model RequestComment {
+  id        String             @id @default(uuid())
+  body      String
+  authorId  String
+  requestId String
+  createdAt DateTime           @default(now())
+  author    User               @relation(fields: [authorId], references: [id])
+  request   MaintenanceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+}
+
+model Announcement {
+  id         String   @id @default(uuid())
+  title      String
+  body       String
+  propertyId String
+  authorId   String
+  createdAt  DateTime @default(now())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  author     User     @relation(fields: [authorId], references: [id])
 }

@@ -61,6 +61,22 @@ export function NotificationBell() {
     }
   }
 
+  async function markAllAsRead() {
+    if (unreadCount === 0) return
+    try {
+      const res = await fetch(`/api/notifications/read-all`, {
+        method: "PATCH",
+      })
+      if (res.ok) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+        setUnreadCount(0)
+      }
+    } catch (error) {
+      console.error("Failed to mark all as read:", error)
+    }
+  }
+
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="relative p-2.5 rounded-full hover:bg-primary/10 transition-all outline-none group">
@@ -77,11 +93,21 @@ export function NotificationBell() {
             <Sparkles className="h-4 w-4 text-primary" />
             <span className="font-black uppercase tracking-widest text-[10px]">Recent Alerts</span>
           </div>
-          {unreadCount > 0 && (
-            <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-              {unreadCount} New
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <button 
+                onClick={(e) => { e.preventDefault(); markAllAsRead(); }}
+                className="text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest"
+              >
+                Mark all read
+              </button>
+            )}
+            {unreadCount > 0 && (
+              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                {unreadCount} New
+              </span>
+            )}
+          </div>
         </DropdownMenuLabel>
         
         <div className="max-h-[380px] overflow-y-auto">

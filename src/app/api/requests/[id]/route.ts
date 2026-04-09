@@ -99,9 +99,14 @@ export async function PATCH(
   }
 
   const body = await req.json()
-  const { status: newStatus, vendorId } = body
+  const { status: newStatus, vendorId, finalCostCents, vendorRating } = body
 
-  const updateData: { status?: RequestStatus; vendorId?: string | null } = {}
+  const updateData: { 
+    status?: RequestStatus; 
+    vendorId?: string | null;
+    finalCostCents?: number | null;
+    vendorRating?: number | null;
+  } = {}
 
   if (newStatus !== undefined) {
     const validStatuses = Object.values(RequestStatus)
@@ -139,6 +144,14 @@ export async function PATCH(
       }
       updateData.vendorId = vendorId
     }
+  }
+
+  if (finalCostCents !== undefined && role === "MANAGER") {
+    updateData.finalCostCents = finalCostCents
+  }
+
+  if (vendorRating !== undefined && role === "MANAGER") {
+    updateData.vendorRating = vendorRating
   }
 
   const updated = await prisma.maintenanceRequest.update({

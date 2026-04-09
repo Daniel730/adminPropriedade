@@ -6,6 +6,7 @@ import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge"
 import { RequestStatus } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Plus, Building2, ArrowRight, Wrench } from "lucide-react"
+import { TenantAnnouncements } from "@/components/properties/TenantAnnouncements"
 
 export default async function TenantRequestsPage() {
   const session = await auth()
@@ -15,6 +16,11 @@ export default async function TenantRequestsPage() {
     where: { tenantId: session.user.id },
     include: { unit: { include: { property: true } } },
     orderBy: { createdAt: "desc" },
+  })
+
+  const unit = await prisma.unit.findUnique({
+    where: { tenantId: session.user.id },
+    select: { propertyId: true }
   })
 
   const openCount = requests.filter(r => r.status !== RequestStatus.RESOLVED).length
@@ -36,6 +42,8 @@ export default async function TenantRequestsPage() {
           </Link>
         </Button>
       </div>
+
+      {unit && <TenantAnnouncements propertyId={unit.propertyId} />}
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4">

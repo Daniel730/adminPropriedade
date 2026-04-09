@@ -13,8 +13,9 @@ import {
 import { AddUnitForm } from "@/components/dashboard/AddUnitForm"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Building2, Home, User, Wrench, ChevronRight, MapPin, Inbox } from "lucide-react"
+import { ArrowLeft, Building2, Home, User, Wrench, ChevronRight, MapPin, Inbox, CheckCircle2 } from "lucide-react"
 import { ManageUnitModal } from "@/components/dashboard/ManageUnitModal"
+import { PropertyAnnouncementsManager } from "@/components/properties/PropertyAnnouncementsManager"
 
 interface Property {
   id: string
@@ -106,7 +107,11 @@ export default function PropertyDetailPageContent({
         </GlassCard>
       </div>
 
-      <div className="space-y-6">
+      <div className="pt-4 border-t">
+        <PropertyAnnouncementsManager propertyId={property.id} />
+      </div>
+
+      <div className="space-y-6 pt-8 border-t">
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-bold tracking-tight flex items-center gap-2">
             <Building2 className="h-5 w-5 text-primary" /> Units Inventory
@@ -201,22 +206,4 @@ export default function PropertyDetailPageContent({
   )
 }
 
-function CheckCircle2(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M20 6 9 17l-5-5" />
-      <circle cx="12" cy="12" r="10" />
-    </svg>
-  )
-}
+

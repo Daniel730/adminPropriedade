@@ -5,6 +5,7 @@ import Link from "next/link"
 import { RequestStatus } from "@/lib/types"
 import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge"
 import { UpdateRequestForm } from "@/components/requests/UpdateRequestForm"
+import { RequestComments } from "@/components/requests/RequestComments"
 import { getAllowedNextStatuses } from "@/lib/request-transitions"
 import { GlassCard } from "@/components/ui/GlassCard"
 import { Button } from "@/components/ui/button"
@@ -153,6 +154,10 @@ export default async function RequestDetailPage({
             </div>
           </GlassCard>
         </div>
+      </div>
+
+      <div className="mt-8">
+        <RequestComments requestId={request.id} currentUserId={session.user.id} />
       </div>
     </div>
   )

@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { title, description, unitId } = body
+  const { title, description, unitId, imageUrl } = body
 
   if (!title || !description || !unitId) {
     return NextResponse.json(
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       status: RequestStatus.OPEN,
       unitId,
       tenantId: session.user.id,
+      imageUrl: imageUrl || null,
     },
   })
 

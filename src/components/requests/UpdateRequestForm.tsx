@@ -4,13 +4,14 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { RequestStatus } from "@/lib/types"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectItem,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { GlassCard } from "@/components/ui/GlassCard"
-import { Edit3, Loader2, Save, UserPlus, Zap } from "lucide-react"
+import { Edit3, Loader2, Save, UserPlus, Zap, DollarSign, Star } from "lucide-react"
 
 interface UpdateRequestFormProps {
   requestId: string
@@ -34,6 +35,8 @@ export function UpdateRequestForm({
   const [vendorId, setVendorId] = useState<string | "none">(currentVendorId ?? "none")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [finalCostDollars, setFinalCostDollars] = useState("")
+  const [vendorRating, setVendorRating] = useState("5")
 
   async function handleUpdate() {
     setLoading(true)
@@ -44,8 +47,10 @@ export function UpdateRequestForm({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status,
-          ...(hideVendorAssignment ? {} : { vendorId: vendorId === "none" ? null : vendorId }),
+          ...(status !== currentStatus ? { status } : {}),
+          ...(!hideVendorAssignment && (vendorId === "none" ? null : vendorId) !== currentVendorId ? { vendorId: vendorId === "none" ? null : vendorId } : {}),
+          ...(status === RequestStatus.RESOLVED && finalCostDollars ? { finalCostCents: Math.round(parseFloat(finalCostDollars) * 100) } : {}),
+          ...(status === RequestStatus.RESOLVED && vendorRating ? { vendorRating: parseInt(vendorRating, 10) } : {}),
         }),
       })
 
@@ -63,7 +68,7 @@ export function UpdateRequestForm({
     }
   }
 
-  const hasChanges = status !== currentStatus || (!hideVendorAssignment && (vendorId === "none" ? null : vendorId) !== currentVendorId)
+  const hasChanges = status !== currentStatus || (!hideVendorAssignment && (vendorId === "none" ? null : vendorId) !== currentVendorId) || status === RequestStatus.RESOLVED
 
   return (
     <GlassCard className="border-none shadow-2xl shadow-primary/5 p-8" hoverable={false}>
@@ -117,6 +122,43 @@ export function UpdateRequestForm({
                 ))}
               </Select>
             </div>
+          )}
+
+          {status === RequestStatus.RESOLVED && (
+            <>
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <DollarSign className="h-3 w-3" /> Final Cost ($)
+                </Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={finalCostDollars}
+                  onChange={(e) => setFinalCostDollars(e.target.value)}
+                  placeholder="e.g. 150.00"
+                  disabled={loading}
+                  className="w-full h-11 rounded-xl bg-background/50 border-muted/20"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Star className="h-3 w-3" /> Vendor Rating
+                </Label>
+                <Select
+                  value={vendorRating}
+                  onValueChange={setVendorRating}
+                  disabled={loading}
+                  className="w-full h-11 rounded-xl bg-background/50 border-muted/20"
+                >
+                  <SelectItem value="5">5 - Excellent</SelectItem>
+                  <SelectItem value="4">4 - Good</SelectItem>
+                  <SelectItem value="3">3 - Average</SelectItem>
+                  <SelectItem value="2">2 - Poor</SelectItem>
+                  <SelectItem value="1">1 - Terrible</SelectItem>
+                </Select>
+              </div>
+            </>
           )}
         </div>
 

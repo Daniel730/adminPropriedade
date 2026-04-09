@@ -72,6 +72,7 @@ export function RequestFilters({ properties }: RequestFiltersProps) {
           placeholder="Any Status"
         >
           <SelectItem value="all" className="font-bold text-primary">Any Status</SelectItem>
+          <SelectItem value="sla_breached" className="font-bold text-destructive">SLA Breached (&gt;48h)</SelectItem>
           {Object.values(RequestStatus).map((s) => (
             <SelectItem key={s} value={s}>
               {s}
@@ -81,15 +82,6 @@ export function RequestFilters({ properties }: RequestFiltersProps) {
       </div>
 
       <div className="flex items-center gap-2 pb-0.5">
-        <Button
-          variant="secondary"
-          size="default"
-          className="h-11 rounded-xl px-6"
-          disabled={!hasFilters}
-          onClick={() => {}} // Could trigger a re-search if needed
-        >
-          <Search className="h-4 w-4 mr-2" /> Apply
-        </Button>
         {hasFilters && (
           <Button
             variant="ghost"

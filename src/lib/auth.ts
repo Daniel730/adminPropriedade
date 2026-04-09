@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs"
 import { prisma } from "./prisma"
 import { authConfig } from "./auth.config"
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const { handlers, auth: nextAuth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma) as any,
   providers: [
@@ -47,3 +47,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
 })
+
+export const auth = async (...args: any[]) => {
+  if (process.env.NEXT_PUBLIC_AUTH_BYPASS === "true") {
+    // Return a mock session for God Mode
+    return {
+      user: {
+        id: "mock-god-mode-id",
+        name: "God Mode User",
+        email: "godmode@propflow.local",
+        role: process.env.NEXT_PUBLIC_AUTH_BYPASS_ROLE || "MANAGER",
+      },
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    }
+  }
+  return (nextAuth as any)(...args)
+}
+
+export { handlers, signIn, signOut }
+

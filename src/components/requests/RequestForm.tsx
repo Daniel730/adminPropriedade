@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { GlassCard } from "@/components/ui/GlassCard"
-import { Wrench, FileText, Loader2, CheckCircle2, ArrowRight } from "lucide-react"
+import { Wrench, FileText, Loader2, CheckCircle2, ArrowRight, Image as ImageIcon } from "lucide-react"
 
 interface RequestFormProps {
   unitId?: string
@@ -20,6 +20,7 @@ interface SuccessData {
 export function RequestForm({ unitId }: RequestFormProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [imageUrl, setImageUrl] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<SuccessData | null>(null)
@@ -33,7 +34,7 @@ export function RequestForm({ unitId }: RequestFormProps) {
       const res = await fetch("/api/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, unitId }),
+        body: JSON.stringify({ title, description, unitId, imageUrl }),
       })
 
       const data = await res.json()
@@ -46,6 +47,7 @@ export function RequestForm({ unitId }: RequestFormProps) {
       setSuccess({ id: data.id })
       setTitle("")
       setDescription("")
+      setImageUrl("")
     } catch {
       setError("Network error. Please try again.")
     } finally {
@@ -111,6 +113,22 @@ export function RequestForm({ unitId }: RequestFormProps) {
             disabled={loading}
             className="rounded-xl bg-background/50 focus-visible:ring-primary border-muted/20 resize-none"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="imageUrl" className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+            <ImageIcon className="h-3 w-3" /> Supporting Photo (Simulated)
+          </Label>
+          <Input
+            id="imageUrl"
+            type="url"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="Paste an image URL here..."
+            disabled={loading}
+            className="h-12 rounded-xl bg-background/50 focus-visible:ring-primary border-muted/20"
+          />
+          <p className="text-xs text-muted-foreground ml-1">Paste a URL of a photo demonstrating the issue (e.g. from an image host max 5MB)</p>
         </div>
 
         {error && (

@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { RequestStatusBadge } from "@/components/requests/RequestStatusBadge"
 import { UpdateRequestForm } from "@/components/requests/UpdateRequestForm"
+import { RequestComments } from "@/components/requests/RequestComments"
 import { getAllowedNextStatuses } from "@/lib/request-transitions"
 import { RequestStatus } from "@/lib/types"
 
@@ -108,6 +109,10 @@ export default async function VendorRequestDetailPage({
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-8">
+        <RequestComments requestId={request.id} currentUserId={session.user.id} />
       </div>
     </div>
   )

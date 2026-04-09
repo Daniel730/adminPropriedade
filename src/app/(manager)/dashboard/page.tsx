@@ -1,5 +1,6 @@
 import { DashboardTable } from "@/components/dashboard/DashboardTable";
-import { Building2, Wrench, Users, TrendingUp, AlertCircle, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { RequestFilters } from "@/components/requests/RequestFilters";
+import { Building2, Wrench, Users, TrendingUp, AlertCircle, ArrowUpRight, ArrowDownRight, Banknote } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -55,11 +56,15 @@ function StatCard({ title, value, icon: Icon, trend, href }: StatCardProps) {
   return content;
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: { searchParams: Promise<{ propertyId?: string, status?: string }> }) {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const [properties, totalUnitsCount, activeRequests, recentRequests, subscription] = await Promise.all([
+  const searchParams = await props.searchParams;
+  const propertyIdParam = searchParams?.propertyId;
+  const statusParam = searchParams?.status;
+
+  const [properties, totalUnitsCount, activeRequests, recentRequests, subscription, allManagerProperties, occupiedUnitsCount, occupiedUnits] = await Promise.all([
     prisma.property.count({ where: { managerId: session.user.id } }),
     prisma.unit.count({ where: { property: { managerId: session.user.id } } }),
     prisma.maintenanceRequest.count({ 
@@ -79,9 +84,55 @@ export default async function DashboardPage() {
       take: 5,
     }),
     getManagerSubscription(session.user.id),
+    prisma.property.findMany({
+      where: { managerId: session.user.id },
+      select: { id: true, name: true }
+    }),
+    prisma.unit.count({
+      where: { 
+        property: { managerId: session.user.id },
+        tenantId: { not: null }
+      }
+    }),
+    prisma.unit.findMany({
+      where: {
+        property: { managerId: session.user.id },
+        tenantId: { not: null }
+      },
+      select: { monthlyRentCents: true }
+    })
   ]);
 
+  const occupancyRate = totalUnitsCount > 0 ? Math.round((occupiedUnitsCount / totalUnitsCount) * 100) : 0;
+  const isFullyOccupied = occupancyRate === 100;
+  const totalRevenue = occupiedUnits.reduce((sum, u) => sum + (u.monthlyRentCents ?? 0), 0) / 100;
+
   const isRestricted = subscription?.status === SubscriptionStatus.RESTRICTED;
+  const targetPropertyIds = propertyIdParam && propertyIdParam !== "all" 
+    ? [propertyIdParam] 
+    : allManagerProperties.map(p => p.id);
+  
+  const isSlaBreachedFilter = statusParam === "sla_breached";
+  const statusFilter = statusParam && Object.values(RequestStatus).includes(statusParam as any) ? statusParam : undefined;
+
+  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+
+  const filteredRequests = await prisma.maintenanceRequest.findMany({
+    where: {
+      unit: { propertyId: { in: targetPropertyIds } },
+      ...(statusFilter && statusFilter !== "all" ? { status: statusFilter as RequestStatus } : {}),
+      ...(isSlaBreachedFilter ? { 
+        status: { not: RequestStatus.RESOLVED },
+        createdAt: { lt: fortyEightHoursAgo }
+      } : {}),
+    },
+    include: {
+      unit: { include: { property: true } },
+      tenant: { select: { name: true } },
+      vendor: { select: { name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <div className="space-y-8">
@@ -121,7 +172,7 @@ export default async function DashboardPage() {
       )}
       
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
           title="Properties"
           value={properties}
@@ -136,17 +187,23 @@ export default async function DashboardPage() {
           href="/properties"
         />
         <StatCard
+          title="Occupancy Rate"
+          value={`${occupancyRate}%`}
+          icon={TrendingUp}
+          trend={isFullyOccupied ? { value: "Fully occupied", positive: true } : { value: `${totalUnitsCount - occupiedUnitsCount} empty`, positive: false }}
+        />
+        <StatCard
+          title="Monthly Revenue"
+          value={`$${totalRevenue.toLocaleString()}`}
+          icon={Banknote}
+          trend={{ value: "MRR", positive: true }}
+        />
+        <StatCard
           title="Active Requests"
           value={activeRequests}
           icon={Wrench}
           trend={activeRequests > 0 ? { value: `${activeRequests} pending`, positive: false } : undefined}
-          href="/dashboard/requests"
-        />
-        <StatCard
-          title="Occupancy Rate"
-          value="100%"
-          icon={TrendingUp}
-          trend={{ value: "Fully occupied", positive: true }}
+          href="/dashboard"
         />
       </div>
 
@@ -158,13 +215,25 @@ export default async function DashboardPage() {
             <p className="text-sm text-muted-foreground mt-0.5">Track and manage incoming requests</p>
           </div>
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/dashboard/requests" className="text-primary">
+            <Link href="#all-requests" className="text-primary">
               View all
               <ArrowUpRight className="h-4 w-4 ml-1" />
             </Link>
           </Button>
         </div>
         <DashboardTable requests={recentRequests} />
+      </div>
+
+      {/* Filterable Full Requests List */}
+      <div id="all-requests" className="space-y-6 pt-4">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">All Requests</h2>
+          <p className="text-sm text-muted-foreground mt-1">Manage and filter all your portfolio requests</p>
+        </div>
+        <RequestFilters properties={allManagerProperties} />
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <DashboardTable requests={filteredRequests} />
+        </div>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { UserPlus, Users, Mail, ArrowRight } from "lucide-react"
+import { UserPlus, Users, Mail, Star } from "lucide-react"
 import Link from "next/link"
 import {
   Table,
@@ -27,8 +27,18 @@ export default async function VendorsPage() {
       name: true,
       email: true,
       createdAt: true,
+      assignedRequests: {
+        where: { status: "RESOLVED", vendorRating: { not: null } },
+        select: { vendorRating: true }
+      }
     },
     orderBy: { name: "asc" },
+  })
+
+  const vendorsWithRatings = vendors.map(vendor => {
+    const ratings = vendor.assignedRequests.map(r => r.vendorRating as number)
+    const avgRating = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : "N/A"
+    return { ...vendor, avgRating }
   })
 
   return (
@@ -98,7 +108,7 @@ export default async function VendorsPage() {
           <>
             {/* Mobile List View */}
             <div className="md:hidden divide-y">
-              {vendors.map((vendor) => (
+              {vendorsWithRatings.map((vendor) => (
                 <div key={vendor.id} className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
@@ -106,9 +116,14 @@ export default async function VendorsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium truncate">{vendor.name}</h4>
-                      <p className="text-sm text-muted-foreground truncate">{vendor.email}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground truncate">{vendor.email}</p>
+                        <span className="text-xs flex items-center gap-1 font-medium select-none bg-muted px-2 py-0.5 rounded-full">
+                          <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                          {vendor.avgRating}
+                        </span>
+                      </div>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
                 </div>
               ))}
@@ -121,12 +136,12 @@ export default async function VendorsPage() {
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="text-xs font-medium text-muted-foreground">Name</TableHead>
                     <TableHead className="text-xs font-medium text-muted-foreground">Email</TableHead>
+                    <TableHead className="text-xs font-medium text-muted-foreground">Rating</TableHead>
                     <TableHead className="text-xs font-medium text-muted-foreground">Joined</TableHead>
-                    <TableHead className="text-right text-xs font-medium text-muted-foreground">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {vendors.map((vendor) => (
+                  {vendorsWithRatings.map((vendor) => (
                     <TableRow key={vendor.id} className="group">
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -142,13 +157,16 @@ export default async function VendorsPage() {
                           {vendor.email}
                         </div>
                       </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 text-sm font-medium border border-border w-fit px-2 py-0.5 rounded-md bg-muted/40">
+                          {vendor.avgRating !== "N/A" && <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />}
+                          <span className={vendor.avgRating === "N/A" ? "text-muted-foreground opacity-50 font-normal" : ""}>
+                            {vendor.avgRating !== "N/A" ? vendor.avgRating : "No ratings"}
+                          </span>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(vendor.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          Manage
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

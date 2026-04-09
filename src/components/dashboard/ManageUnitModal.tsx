@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,6 +30,14 @@ export function ManageUnitModal({ unit, onClose }: ManageUnitModalProps) {
   const [searching, setSearching] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    setSearchEmail("")
+    setSearchResults([])
+    setError(null)
+    setSuccess(false)
+  }, [unit])
 
   async function handleSearch() {
     if (searchEmail.length < 3) return
@@ -62,8 +70,11 @@ export function ManageUnitModal({ unit, onClose }: ManageUnitModalProps) {
         return
       }
 
+      setSuccess(true)
       router.refresh()
-      onClose()
+      setTimeout(() => {
+        onClose()
+      }, 1000)
     } catch {
       setError("Update failed.")
     } finally {
@@ -168,6 +179,10 @@ export function ManageUnitModal({ unit, onClose }: ManageUnitModalProps) {
             <div className="flex items-center justify-center gap-2 text-xs font-bold text-primary uppercase tracking-widest animate-pulse">
               <Loader2 className="h-4 w-4 animate-spin" /> Updating Assignment...
             </div>
+          )}
+
+          {success && (
+            <p className="text-xs font-bold text-success text-center uppercase tracking-tight">Assignment successfully updated</p>
           )}
         </div>
       </GlassCard>

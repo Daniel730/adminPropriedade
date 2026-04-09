@@ -13,7 +13,8 @@ import {
   CreditCard,
   Bell,
   Search,
-  ChevronRight
+  ChevronRight,
+  BarChart3
 } from "lucide-react";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -22,6 +23,9 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/lib/actions";
+import { CommandPalette } from "./CommandPalette";
+import { UserMenu } from "./UserMenu";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 interface NavItem {
   label: string;
@@ -39,6 +43,7 @@ const NAV_ITEMS: Record<string, NavItem[]> = {
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Properties", href: "/properties", icon: Building2 },
     { label: "Vendors", href: "/vendors", icon: Users },
+    { label: "Reports", href: "/dashboard/reports", icon: BarChart3 },
     { label: "Billing", href: "/billing", icon: CreditCard },
   ],
   TENANT: [
@@ -72,9 +77,7 @@ export function ModernLayout({ children, role }: ModernLayoutProps) {
       <header className="md:hidden fixed top-0 left-0 right-0 flex items-center justify-between px-4 h-16 border-b bg-background/95 backdrop-blur-sm z-50">
         <BrandLogo size="sm" />
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-lg">
-            <Bell className="h-5 w-5" />
-          </Button>
+          <NotificationBell />
           <Button variant="ghost" size="icon" className="rounded-lg" onClick={() => setIsSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
@@ -164,24 +167,20 @@ export function ModernLayout({ children, role }: ModernLayoutProps) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="gap-2 text-muted-foreground">
+            <Button variant="outline" size="sm" className="gap-2 text-muted-foreground" onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}>
               <Search className="h-4 w-4" />
               <span className="hidden lg:inline">Search...</span>
               <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
                 <span className="text-xs">&#8984;</span>K
               </kbd>
             </Button>
-            <Button variant="ghost" size="icon" className="relative rounded-lg">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full" />
-            </Button>
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
-              <span className="text-xs font-medium text-primary">
-                {role.charAt(0)}
-              </span>
-            </div>
+            <NotificationBell />
+            <UserMenu />
           </div>
         </header>
+
+        {/* Command Palette */}
+        <CommandPalette />
 
         {/* Page Content */}
         <div className="flex-1 overflow-y-auto">

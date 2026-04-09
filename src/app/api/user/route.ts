@@ -7,6 +7,15 @@ export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+  if (process.env.NEXT_PUBLIC_AUTH_BYPASS === "true") {
+    return NextResponse.json({
+      id: session.user.id,
+      name: session.user.name,
+      email: session.user.email,
+      role: session.user.role,
+    })
+  }
+
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { id: true, name: true, email: true, role: true }

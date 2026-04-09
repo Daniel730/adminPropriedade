@@ -116,8 +116,9 @@ function DropdownMenuContent({
 }
 
 interface DropdownMenuItemProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  extends React.HTMLAttributes<HTMLElement> {
   inset?: boolean
+  asChild?: boolean
 }
 
 function DropdownMenuItem({
@@ -125,13 +126,17 @@ function DropdownMenuItem({
   inset,
   children,
   onClick,
+  asChild,
   ...props
 }: DropdownMenuItemProps) {
   const { setOpen } = React.useContext(DropdownMenuContext)
 
+  const Comp = asChild ? "div" : "button"
+
   return (
-    <button
-      type="button"
+    <Comp
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {...(asChild ? {} : { type: "button" } as any)}
       className={cn(
         "relative flex w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50",
         inset && "pl-8",
@@ -144,7 +149,7 @@ function DropdownMenuItem({
       {...props}
     >
       {children}
-    </button>
+    </Comp>
   )
 }
 

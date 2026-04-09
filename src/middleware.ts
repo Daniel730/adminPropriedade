@@ -32,6 +32,8 @@ const PROTECTED_PREFIXES = [
   "/api/requests",
   "/api/notifications",
   "/api/billing",
+  "/api/search",
+  "/api/tenants",
   "/settings",
   "/api/user",
 ]
